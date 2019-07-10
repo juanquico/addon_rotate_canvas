@@ -48,7 +48,7 @@ class OBJECT_OT_createCameras(bpy.types.Operator):
        
             
             
-        bpy.ops.gpencil.paintmode_toggle()
+       
         bpy.ops.object.camera_add( rotation=(1.5708, 0, 0))
         bpy.context.object.name = 'Cam_anim' 
         bpy.ops.object.camera_add( location=(0,0,0), rotation=(0, 0, 0))
