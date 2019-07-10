@@ -17,8 +17,7 @@ from bpy import context
 
 
 
-#classes
-
+      
 
 #operator01
 class OBJECT_OT_createCameras(bpy.types.Operator):
@@ -30,12 +29,13 @@ class OBJECT_OT_createCameras(bpy.types.Operator):
    
     #execution
     def execute(self,context):
-        
+       
         
      #GoToObjectMode
+        
         MiObjeto=bpy.context.active_object
         MiModo= bpy.context.mode
-        bpy.ops.object.mode_set(mode='OBJECT')
+        bpy.ops.object.mode_set(mode='OBJECT') 
         
         #limpieza de otras instancias del addon
         for obj in bpy.context.scene.objects:
@@ -44,13 +44,10 @@ class OBJECT_OT_createCameras(bpy.types.Operator):
                 obj.name='excanvas'                
             elif obj.name =='Cam_anim':
                 obj.name='excamAnim'
-                
-       
-            
-            
-       
-        bpy.ops.object.camera_add( rotation=(1.5708, 0, 0))
-        bpy.context.object.name = 'Cam_anim' 
+        
+        #creacion de las camaras y emparentamiento        
+        bpy.ops.object.camera_add( location=(0,0,0), rotation=(1.5708, 0, 0)) 
+        bpy.context.object.name = 'Cam_anim'         
         bpy.ops.object.camera_add( location=(0,0,0), rotation=(0, 0, 0))
         bpy.context.object.name = 'canvas'    
         bpy.ops.object.constraint_add(type='CHILD_OF')
@@ -62,7 +59,10 @@ class OBJECT_OT_createCameras(bpy.types.Operator):
         bpy.context.object.lock_rotation[1] = True
         bpy.context.scene.camera = bpy.data.objects['canvas']
         bpy.context.object.data.display_size = 2
-        bpy.context.object.hide_select = True
+        bpy.context.object.hide_select = True       
+        bpy.ops.object.camera_add( rotation=(1.5708, 0, 0))
+        bpy.context.object.name = 'Cam_anim' 
+        
        
          #volver al objeto seleccionado
         MiObjeto.select_set (state=True)
@@ -102,7 +102,7 @@ class OBJECT_OT_createCanvas(bpy.types.Operator):
         
         
             
-            
+        #creacion de las camaras y emparentamiento    
         bpy.ops.object.select_camera()
         bpy.context.object.name = 'Cam_anim' 
         bpy.ops.object.camera_add(location=(0,0,0), rotation=(0, 0, 0))
@@ -205,37 +205,21 @@ def add_object_button(self,context):
             OBJECT_OT_createCameras.bl_idname,
             icon="OUTLINER_OB_CAMERA"          
             )
-       
-
-      
 
 
 #register
+       
+__classes__ = (OBJECT_OT_createCameras, OBJECT_OT_createCanvas, OBJECT_OT_resetRotation, PANEL_PT_AddCanvasPanel, PANEL_PT_RotateCanvasPanel)
+
 def register():
-    
-     
-    bpy.utils.register_class(OBJECT_OT_createCameras)
-    bpy.utils.register_class(OBJECT_OT_createCanvas)
-    bpy.utils.register_class(OBJECT_OT_resetRotation)
-    bpy.utils.register_class(PANEL_PT_AddCanvasPanel)
-    bpy.utils.register_class(PANEL_PT_RotateCanvasPanel)
+    for c in __classes__:
+        bpy.utils.register_class(c)
    
-
-
-    
-#unregister
 def unregister():
+    for c in reversed(__classes__):
+        bpy.utils.unregister_class(c)
     
-    bpy.utils.unregister_class(OBJECT_OT_createCameras)
-    bpy.utils.unregister_class(OBJECT_OT_createCanvas)
-    bpy.utils.unregister_class(OBJECT_OT_resetRotation)
-    bpy.utils.unregister_class(PANEL_PT_AddCanvasPanel)
-    bpy.utils.unregister_class(PANEL_PT_RotateCanvasPanel)
-    
-    
-
-    
-
-#Needed to run sctipt in Text Editor
-if __name__ == '__main__':
+if __name__ == "__main__":
     register()
+      
+#  (OBJECT_OT_createCameras, OBJECT_OT_createCanvas, OBJECT_OT_resetRotation, PANEL_PT_AddCanvasPanel, PANEL_PT_RotateCanvasPanel)
