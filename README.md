@@ -15,4 +15,4 @@ Planned Feautures:
   Passepartout: opacity slider. (check HOPS)
   Composition Guides: append and make accesible composition guides
 
-#MORE-FEAUTURES BRANCH works much better but it can't be installed as an addon
+
