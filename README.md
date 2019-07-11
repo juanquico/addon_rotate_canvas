@@ -1,7 +1,7 @@
 # addon_rotate_canvas
 Blender Addon to rotate the drawing canvas for Grease Pencil
 
-Desctiption: Creates a new camera parented to the active one and a driver in Z rotation in order to rotate the camera canvas like. Usefull to 2D artist who want to start using Grease Pencil
+Desctiption: Creates a new camera parented to the active one and a slider for the z rotation in order to rotate the camera as a canvas. Usefull to 2D artist who want to start using Grease Pencil
 
 Warning: Very experimantal.
 
