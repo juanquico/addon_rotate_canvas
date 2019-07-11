@@ -14,8 +14,7 @@ bl_info={
 import bpy
 from bpy.types import Panel
 from bpy import context
-
-
+from bpy.props import BoolProperty# import bool property
 
       
 
@@ -25,6 +24,11 @@ class OBJECT_OT_createCameras(bpy.types.Operator):
     bl_label="Create Camera and Canvas"
     bl_idname="cam.add_canvas"
     bl_options= {'REGISTER','UNDO'}
+    
+    @classmethod
+    def poll(cls, context):
+        print("Poll called")
+        return True
    
    
     #execution
@@ -68,6 +72,9 @@ class OBJECT_OT_createCameras(bpy.types.Operator):
         MiObjeto.select_set (state=True)
         bpy.context.view_layer.objects.active = MiObjeto
         bpy.ops.object.mode_set(mode=MiModo)
+        
+        context.scene.my_bool_property = not context.scene.my_bool_property
+        self.report({'INFO'}, "Simple Operator executed.")
 
 
         
@@ -83,9 +90,14 @@ class OBJECT_OT_createCanvas(bpy.types.Operator):
     bl_idname="cam.add_canvas_for_cam"
     bl_options= {'REGISTER','UNDO'}
     
-    
-    #execution
-    def execute(self,context):
+    @classmethod
+    def poll(cls, context):
+        print("Poll called")
+        return True
+
+
+    def execute(self, context):
+      
         
         #GoToObjectMode
         MiObjeto=bpy.context.active_object
@@ -126,25 +138,68 @@ class OBJECT_OT_createCanvas(bpy.types.Operator):
         bpy.context.view_layer.objects.active = MiObjeto
         bpy.ops.object.mode_set(mode=MiModo)
       
-      
+       #switch bool property to opposite. if you don't toggle just set to False
+        context.scene.my_bool_property = not context.scene.my_bool_property
+        self.report({'INFO'}, "Simple Operator executed.")
 
 
 
         
         return {'FINISHED'}
 
-
 #operator03
+class OBJECT_OT_deleteCanvas(bpy.types.Operator):
+    """Delete canvas"""
+    bl_label="Delete Canvas"
+    bl_idname="cam.del_canvas"
+    bl_options= {'REGISTER','UNDO'}
+    
+    
+    
+    #execution
+    def execute(self,context):
+        
+        #GoToObjectMode
+        MiObjeto=bpy.context.active_object
+        MiModo= bpy.context.mode
+        bpy.ops.object.mode_set(mode='OBJECT')
+        bpy.ops.object.select_all(action='DESELECT')
+
+        for obj in bpy.context.scene.objects:
+            if obj.name == 'canvas':
+                obj.hide_select = False
+                obj.name='teBorro'
+                bpy.data.objects.remove(obj)
+            elif obj.name =='Cam_anim':
+                obj.name='Camera'
+                bpy.context.scene.camera = bpy.data.objects['Camera']
+        
+         #switch bool property to opposite. if you don't toggle just set to False
+        context.scene.my_bool_property = not context.scene.my_bool_property
+        self.report({'INFO'}, "Simple Operator executed.")
+
+        
+        return {'FINISHED'}
+
+
+#operator04
 class OBJECT_OT_resetRotation(bpy.types.Operator):
     """Adds two cameras linked togheter"""
     bl_label="Reset Rotation"
     bl_idname="camera.reset_rotacion"
     bl_options= {'REGISTER','UNDO'}
     
-   
+    @classmethod
+    def poll(cls, context):
+        print("Poll called")
+        return True
+    
     #execution
     def execute(self,context):
         bpy.data.objects['canvas'].rotation_euler[2]=0
+        
+        
+        
         return {'FINISHED'}
 
 
@@ -158,7 +213,7 @@ class PANEL_PT_AddCanvasPanel(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = "UI"
     bl_category = "Rotate Canvas"
-    bl_label = "Create Canvas"
+    bl_label = "Create/Delete Canvas"
      
     #Agregar funcionalidad
     def draw(self, context):
@@ -168,11 +223,11 @@ class PANEL_PT_AddCanvasPanel(Panel):
         
        
         
-          # Create a simple row.
-        #layout.label(text="Create a Canvas")
-         
-        layout.operator(OBJECT_OT_createCanvas.bl_idname, text='Using existing Camera', icon="OUTLINER_OB_CAMERA")
-        layout.operator(OBJECT_OT_createCameras.bl_idname, text='Create New Canvas', icon="PLUS")
+        if scene.my_bool_property:#if bool property is true, show rows, else don't            
+            layout.operator(OBJECT_OT_createCanvas.bl_idname, text='Using existing Camera', icon="OUTLINER_OB_CAMERA")
+            layout.operator(OBJECT_OT_createCameras.bl_idname, text='Adding a new camera', icon="PLUS")
+        else:
+            layout.operator(OBJECT_OT_deleteCanvas.bl_idname, text='Delete Canvas', icon="CANCEL")
         
         
        
@@ -191,12 +246,17 @@ class PANEL_PT_RotateCanvasPanel(Panel):
        
         scene = context.scene
         layout = self.layout
-        canvas=bpy.data.objects['canvas']
-       
-        #layout.label(text=" Canvas Rotation:")
-        row = layout.row(align=True)
-        row.prop(canvas, "rotation_euler", index=2,text='rot')
-        row.operator(OBJECT_OT_resetRotation.bl_idname, text='reset', icon="FILE_REFRESH")
+        
+        if not scene.my_bool_property:
+            canvas=bpy.data.objects['canvas']
+            #layout.label(text=" Canvas Rotation:")
+            row = layout.row(align=True)
+            row.prop(canvas, "rotation_euler", index=2,text='rot')
+            row.operator(OBJECT_OT_resetRotation.bl_idname, text='reset', icon="FILE_REFRESH")
+        else:
+            layout.label(text='First create a Canvas')
+            
+            
        
        
 #agregar boton en otras partes
@@ -209,17 +269,19 @@ def add_object_button(self,context):
 
 #register
        
-__classes__ = (OBJECT_OT_createCameras, OBJECT_OT_createCanvas, OBJECT_OT_resetRotation, PANEL_PT_AddCanvasPanel, PANEL_PT_RotateCanvasPanel)
+__classes__ = (OBJECT_OT_createCameras, OBJECT_OT_createCanvas,OBJECT_OT_deleteCanvas, OBJECT_OT_resetRotation, PANEL_PT_AddCanvasPanel, PANEL_PT_RotateCanvasPanel)
 
 def register():
     for c in __classes__:
         bpy.utils.register_class(c)
-   
+    bpy.types.Scene.my_bool_property = BoolProperty(name='My Bool Property', default = True)# create bool property for switching
+    
+    
 def unregister():
     for c in reversed(__classes__):
         bpy.utils.unregister_class(c)
-    
+    del bpy.types.Scene.my_bool_property#remove property on unregister
 if __name__ == "__main__":
     register()
       
-#  (OBJECT_OT_createCameras, OBJECT_OT_createCanvas, OBJECT_OT_resetRotation, PANEL_PT_AddCanvasPanel, PANEL_PT_RotateCanvasPanel)
+#  
