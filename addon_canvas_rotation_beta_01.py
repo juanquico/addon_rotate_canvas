@@ -13,8 +13,11 @@ bl_info={
 
 import bpy
 from bpy.types import Panel
+from bpy.types import (Operator)
 from bpy import context
 from bpy.props import BoolProperty# import bool property
+from mathutils import *
+from math import *
 
       
 
@@ -53,7 +56,8 @@ class OBJECT_OT_createCameras(bpy.types.Operator):
         bpy.ops.object.camera_add( location=(0,0,0), rotation=(1.5708, 0, 0)) 
         bpy.context.object.name = 'Cam_anim'         
         bpy.ops.object.camera_add( location=(0,0,0), rotation=(0, 0, 0))
-        bpy.context.object.name = 'canvas'    
+        bpy.context.object.name = 'canvas' 
+        bpy.context.object.data.name = "canvas"   
         bpy.ops.object.constraint_add(type='CHILD_OF')
         bpy.context.object.constraints["Child Of"].target = bpy.data.objects['Cam_anim']
         bpy.context.object.lock_location[0] = True
@@ -62,6 +66,7 @@ class OBJECT_OT_createCameras(bpy.types.Operator):
         bpy.context.object.lock_rotation[0] = True
         bpy.context.object.lock_rotation[1] = True
         bpy.context.scene.camera = bpy.data.objects['canvas']
+        
         bpy.context.object.data.display_size = 2
         bpy.context.object.hide_select = True       
         bpy.ops.object.camera_add( rotation=(1.5708, 0, 0))
@@ -118,7 +123,8 @@ class OBJECT_OT_createCanvas(bpy.types.Operator):
         bpy.ops.object.select_camera()
         bpy.context.object.name = 'Cam_anim' 
         bpy.ops.object.camera_add(location=(0,0,0), rotation=(0, 0, 0))
-        bpy.context.object.name = 'canvas'    
+        bpy.context.object.name = 'canvas'
+        bpy.context.object.data.name = "canvas"       
         bpy.ops.object.constraint_add(type='CHILD_OF')
         bpy.context.object.constraints["Child Of"].target = bpy.data.objects['Cam_anim']
         bpy.context.object.lock_location[0] = True
@@ -127,6 +133,7 @@ class OBJECT_OT_createCanvas(bpy.types.Operator):
         bpy.context.object.lock_rotation[0] = True
         bpy.context.object.lock_rotation[1] = True
         bpy.context.scene.camera = bpy.data.objects['canvas']
+     
         bpy.data.objects['canvas'].select_set (state=True)
         bpy.context.view_layer.objects.active = bpy.data.objects['canvas']
         bpy.context.object.data.display_size = 2
@@ -167,6 +174,7 @@ class OBJECT_OT_deleteCanvas(bpy.types.Operator):
 
         for obj in bpy.context.scene.objects:
             if obj.name == 'canvas':
+                obj.data.name = "excanvas"   
                 obj.hide_select = False
                 obj.name='teBorro'
                 bpy.data.objects.remove(obj)
@@ -201,6 +209,8 @@ class OBJECT_OT_resetRotation(bpy.types.Operator):
         
         
         return {'FINISHED'}
+    
+
 
 
 
@@ -248,16 +258,89 @@ class PANEL_PT_RotateCanvasPanel(Panel):
         layout = self.layout
         
         if not scene.my_bool_property:
+            
             canvas=bpy.data.objects['canvas']
             #layout.label(text=" Canvas Rotation:")
             row = layout.row(align=True)
             row.prop(canvas, "rotation_euler", index=2,text='rot')
             row.operator(OBJECT_OT_resetRotation.bl_idname, text='reset', icon="FILE_REFRESH")
+            
         else:
             layout.label(text='First create a Canvas')
             
-            
+#panel 03         
+class PANEL_PT_ExtraTools(Panel):
+    
+    bl_label = 'ExtraTools'
+    bl_idname = 'object_pt_ExtraTools'
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "Rotate Canvas"
+    bl_label = "ExtraTools"
+     
+    #Agregar funcionalidad
+    def draw(self, context):
        
+        scene = context.scene
+        layout = self.layout
+        col = layout.column()
+        rd = scene.render
+#        cam=bpy.context.object.data
+        cam=bpy.data.cameras['canvas']
+
+        box = layout.box()
+        row = box.row(align=True)
+        row.label(text="Render")
+        row = box.row(align=True)    
+        row.prop(rd, "film_transparent", text="Film Transparent")
+        
+        box = layout.box()
+        row = box.row(align=True)
+        row.label(text="Passepartout")
+        row = box.row(align=True)    
+        row.prop(cam, "show_passepartout", text="")
+        row.prop(cam, "passepartout_alpha", text="Opacity", slider=True)
+        
+               
+        
+#panel 04         
+class PANEL_PT_CompGuides(Panel):
+    bl_label = 'CompGuides'
+    bl_idname = 'object_pt_CompGuides'
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "Rotate Canvas"
+    bl_parent_id = "object_pt_ExtraTools"
+    
+     #Agregar funcionalidad
+    def draw(self, context):
+       
+        scene = context.scene
+        layout = self.layout
+        col = layout.column()
+        rd = scene.render
+#        cam=bpy.context.object.data
+        cam=bpy.data.cameras['canvas']
+        
+        
+        col.prop(cam, "show_composition_center")
+     
+        col.prop(cam, "show_composition_center_diagonal")
+   
+        col.prop(cam, "show_composition_thirds")
+      
+        col.prop(cam, "show_composition_golden")
+      
+        col.prop(cam, "show_composition_golden_tria_a")
+    
+        col.prop(cam, "show_composition_golden_tria_b")
+    
+        col.prop(cam, "show_composition_harmony_tri_a")
+       
+        col.prop(cam, "show_composition_harmony_tri_b")
+
+      
+
        
 #agregar boton en otras partes
 def add_object_button(self,context):
@@ -266,10 +349,11 @@ def add_object_button(self,context):
             icon="OUTLINER_OB_CAMERA"          
             )
 
+addon_keymaps = []
 
 #register
        
-__classes__ = (OBJECT_OT_createCameras, OBJECT_OT_createCanvas,OBJECT_OT_deleteCanvas, OBJECT_OT_resetRotation, PANEL_PT_AddCanvasPanel, PANEL_PT_RotateCanvasPanel)
+__classes__ = (OBJECT_OT_createCameras, OBJECT_OT_createCanvas,OBJECT_OT_deleteCanvas, OBJECT_OT_resetRotation, PANEL_PT_AddCanvasPanel, PANEL_PT_RotateCanvasPanel, PANEL_PT_ExtraTools, PANEL_PT_CompGuides)
 
 def register():
     for c in __classes__:
@@ -277,7 +361,23 @@ def register():
     bpy.types.Scene.my_bool_property = BoolProperty(name='My Bool Property', default = True)# create bool property for switching
     
     
+    '''
+    wm = bpy.context.window_manager
+    kc = wm.keyconfigs.addon
+    if kc:
+        km = wm.keyconfigs.addon.keymaps.new('3D View', space_type='VIEW_3D')
+        kmi = km.keymap_items.new('bpy.data.objects["canvas"].rotation_euler[2]', 'MIDDLEMOUSE', 'CLICK_DRAG', alt=True, shift=True)
+        addon_keymaps.append((km, kmi))
+    '''
+    
 def unregister():
+   
+    '''
+    for km, kmi in addon_keymaps:
+        km.keymap_items.remove(kmi)
+    addon_keymaps.clear()
+    '''
+    
     for c in reversed(__classes__):
         bpy.utils.unregister_class(c)
     del bpy.types.Scene.my_bool_property#remove property on unregister
