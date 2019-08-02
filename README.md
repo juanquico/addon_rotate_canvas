@@ -9,10 +9,12 @@ Known bugs:
   -Rotation property looks for an object called 'canvas' that doesen't exists before a canvas system is created.
 
 Planned Feautures:
-  Add Flip canvas options.
-  Add a Hotkey to the canvas rotation.
-  Reset function will delete keyframes
-  Passepartout: opacity slider. (check HOPS)
-  Composition Guides: append and make accesible composition guides
+  -Add Flip canvas options.
+  -Add a Hotkey to the canvas rotation.
+  -Reset function will delete keyframes
+  -Passepartout: opacity slider. (check HOPS)
+  -Composition Guides: append and make accesible composition guides
+  -Add Film > Transparent checkbox
+  - make bcakground images non rotate (invert camera rotation)
 
 
